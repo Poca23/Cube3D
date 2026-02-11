@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo 3D - CND</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #logo-container {
+            width: 800px;
+            height: 800px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .signature {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            font-family: 'Arial', sans-serif;
+            font-size: 24px;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.4);
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            #logo-container {
+                width: 100vw;
+                height: 100vh;
+            }
+
+            .signature {
+                bottom: 20px;
+                right: 20px;
+                font-size: 18px;
+                letter-spacing: 6px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="logo-container">
+        <div class="signature">CND</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+    <script>
+        class Logo3D {
+            constructor() {
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.cube = null;
+                this.sphere = null;
+                this.lights = [];
+                this.clock = new THREE.Clock();
+
+                this.init();
+            }
+
+            init() {
+                this.createScene();
+                this.createCamera();
+                this.createRenderer();
+                this.createLights();
+                this.createObjects();
+                this.setupResize();
+                this.animate();
+            }
+
+            createScene() {
+                this.scene = new THREE.Scene();
+            }
+
+            createCamera() {
+                const container = document.getElementById('logo-container');
+                const aspect = container.clientWidth / container.clientHeight;
+
+                this.camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+                this.camera.position.set(0, 2, 12);
+                this.camera.lookAt(0, 0, 0);
+            }
+
+            createRenderer() {
+                const container = document.getElementById('logo-container');
+
+                this.renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                    alpha: true
+                });
+
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                this.renderer.shadowMap.enabled = true;
+                this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                this.renderer.toneMappingExposure = 1.2;
+
+                container.appendChild(this.renderer.domElement);
+            }
+
+            createLights() {
+                // Lumière ambiante douce
+                const ambient = new THREE.AmbientLight(0xffffff, 0.3);
+                this.scene.add(ambient);
+
+                // Lumière directionnelle principale
+                const directional = new THREE.DirectionalLight(0xffffff, 1);
+                directional.position.set(5, 8, 5);
+                directional.castShadow = true;
+                directional.shadow.mapSize.width = 2048;
+                directional.shadow.mapSize.height = 2048;
+                this.scene.add(directional);
+
+                // Lumière violette pour le cube
+                const purpleLight = new THREE.PointLight(0x9b59b6, 2, 15);
+                purpleLight.position.set(-3, 2, 3);
+                this.scene.add(purpleLight);
+                this.lights.push(purpleLight);
+
+                // Lumière turquoise pour la sphère
+                const cyanLight = new THREE.PointLight(0x00d4ff, 2, 15);
+                cyanLight.position.set(3, 2, 3);
+                this.scene.add(cyanLight);
+                this.lights.push(cyanLight);
+
+                // Lumière d'accentuation arrière
+                const rimLight = new THREE.PointLight(0xffffff, 1.5, 20);
+                rimLight.position.set(0, 3, -5);
+                this.scene.add(rimLight);
+                this.lights.push(rimLight);
+            }
+
+            createObjects() {
+                // CUBE VIOLET
+                const cubeGeometry = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+                const cubeMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x6c5ce7,
+                    metalness: 0.6,
+                    roughness: 0.2,
+                    emissive: 0x6c5ce7,
+                    emissiveIntensity: 0.2
+                });
+
+                this.cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+                this.cube.position.set(-3, 0, 0);
+                this.cube.castShadow = true;
+                this.cube.receiveShadow = true;
+                this.scene.add(this.cube);
+
+                // SPHÈRE TURQUOISE
+                const sphereGeometry = new THREE.SphereGeometry(1.5, 64, 64);
+                const sphereMaterial = new THREE.MeshStandardMaterial({
+                    color: 0x00d4ff,
+                    metalness: 0.7,
+                    roughness: 0.15,
+                    emissive: 0x00d4ff,
+                    emissiveIntensity: 0.3
+                });
+
+                this.sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                this.sphere.position.set(3, 0, 0);
+                this.sphere.castShadow = true;
+                this.sphere.receiveShadow = true;
+                this.scene.add(this.sphere);
+
+                // Sol invisible pour les ombres
+                const planeGeometry = new THREE.PlaneGeometry(30, 30);
+                const planeMaterial = new THREE.ShadowMaterial({
+                    opacity: 0.3
+                });
+
+                const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+                plane.rotation.x = -Math.PI / 2;
+                plane.position.y = -2;
+                plane.receiveShadow = true;
+                this.scene.add(plane);
+            }
+
+            animate() {
+                requestAnimationFrame(() => this.animate());
+
+                const elapsedTime = this.clock.getElapsedTime();
+
+                // Rotation lente et élégante du cube
+                this.cube.rotation.x = Math.sin(elapsedTime * 0.3) * 0.2 + elapsedTime * 0.1;
+                this.cube.rotation.y = elapsedTime * 0.15;
+                this.cube.rotation.z = Math.cos(elapsedTime * 0.2) * 0.1;
+
+                // Rotation de la sphère
+                this.sphere.rotation.x = elapsedTime * 0.08;
+                this.sphere.rotation.y = elapsedTime * 0.12;
+
+                // Légère oscillation verticale
+                this.cube.position.y = Math.sin(elapsedTime * 0.8) * 0.3;
+                this.sphere.position.y = Math.cos(elapsedTime * 0.8 + Math.PI) * 0.3;
+
+                // Animation des lumières
+                if (this.lights.length > 0) {
+                    const purpleLight = this.lights[0];
+                    purpleLight.position.x = -3 + Math.cos(elapsedTime) * 2;
+                    purpleLight.position.z = 3 + Math.sin(elapsedTime) * 2;
+
+                    const cyanLight = this.lights[1];
+                    cyanLight.position.x = 3 + Math.sin(elapsedTime + Math.PI) * 2;
+                    cyanLight.position.z = 3 + Math.cos(elapsedTime + Math.PI) * 2;
+                }
+
+                this.renderer.render(this.scene, this.camera);
+            }
+
+            setupResize() {
+                window.addEventListener('resize', () => {
+                    const container = document.getElementById('logo-container');
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+
+                    this.camera.aspect = width / height;
+                    this.camera.updateProjectionMatrix();
+
+                    this.renderer.setSize(width, height);
+                    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                });
+            }
+
+            dispose() {
+                if (this.cube) {
+                    this.cube.geometry.dispose();
+                    this.cube.material.dispose();
+                }
+                if (this.sphere) {
+                    this.sphere.geometry.dispose();
+                    this.sphere.material.dispose();
+                }
+                if (this.renderer) {
+                    this.renderer.dispose();
+                }
+            }
+        }
+
+        // Initialisation
+        if (typeof THREE !== 'undefined') {
+            const logo = new Logo3D();
+
+            window.addEventListener('beforeunload', () => {
+                logo.dispose();
+            });
+        } else {
+            console.error('Three.js not loaded');
+        }
+    </script>
+</body>
+
+</html>
