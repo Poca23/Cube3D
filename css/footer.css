@@ -27,6 +27,12 @@
   filter: drop-shadow(0 4px 8px rgba(108, 92, 231, 0.3));
 }
 
+hr {
+  width: 80%;
+  margin: 10px auto;
+  border-color: var(--color-primary-light);
+}
+
 @keyframes bounce {
   0%,
   100% {
