@@ -13,15 +13,15 @@ export const CONFIG = {
     position: {
       x: 0,
       y: 0,
-      z: 5,
+      z: 8,
     },
   },
 
   cube: {
     size: {
-      width: 2,
-      height: 2,
-      depth: 2,
+      width: 0.8,
+      height: 0.8,
+      depth: 0.8,
     },
     material: {
       color: 0x6c5ce7,
@@ -36,10 +36,46 @@ export const CONFIG = {
       },
     },
     position: {
-      x: 0,
+      x: -2,
       y: 0,
       z: 0,
     },
+    movement: {
+      speed: 0.02,
+      bounds: {
+        x: 3.5,
+        y: 2.5,
+      },
+    },
+  },
+
+  sphere: {
+    radius: 0.5,
+    segments: 32,
+    material: {
+      color: 0x00d4ff,
+      metalness: 0.3,
+      roughness: 0.4,
+    },
+    position: {
+      x: 2,
+      y: 0,
+      z: 0,
+    },
+    movement: {
+      speed: 0.025,
+      bounds: {
+        x: 3.5,
+        y: 2.5,
+      },
+    },
+  },
+
+  collision: {
+    enabled: true,
+    waveAmplitude: 0.15,
+    waveDuration: 1.0,
+    waveFrequency: 8,
   },
 
   lights: {
@@ -96,44 +132,16 @@ export const CONFIG = {
     adaptivePixelRatio: true,
   },
 
+  animation: {
+    pulse: false,
+    lightRotation: true,
+  },
+
   selectors: {
     canvasContainer: "#canvas-container",
   },
 
-  animation: {
-    pulse: true,
-    lightRotation: true,
-  },
-
   debug: false,
 };
-
-export function updateConfig(customConfig) {
-  return deepMerge(CONFIG, customConfig);
-}
-
-function deepMerge(target, source) {
-  const output = { ...target };
-
-  if (isObject(target) && isObject(source)) {
-    Object.keys(source).forEach((key) => {
-      if (isObject(source[key])) {
-        if (!(key in target)) {
-          Object.assign(output, { [key]: source[key] });
-        } else {
-          output[key] = deepMerge(target[key], source[key]);
-        }
-      } else {
-        Object.assign(output, { [key]: source[key] });
-      }
-    });
-  }
-
-  return output;
-}
-
-function isObject(item) {
-  return item && typeof item === "object" && !Array.isArray(item);
-}
 
 export default CONFIG;

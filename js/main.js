@@ -22,6 +22,7 @@ waitForThree().then(async () => {
   const { Cube } = await import("./components/Cube.js");
   const { Sphere } = await import("./components/Sphere.js");
   const { Lights } = await import("./components/Lights.js");
+  const { CollisionManager } = await import("./components/CollisionManager.js");
 
   class App {
     constructor() {
@@ -35,6 +36,7 @@ waitForThree().then(async () => {
       this.cube = null;
       this.sphere = null;
       this.lights = null;
+      this.collisionManager = null;
       this.responsiveManager = ResponsiveManager;
 
       this.stats = {
@@ -98,6 +100,10 @@ waitForThree().then(async () => {
 
       this.sphere = new Sphere();
       this.scene.add(this.sphere.getMesh());
+
+      this.collisionManager = new CollisionManager();
+      this.collisionManager.addObject(this.cube);
+      this.collisionManager.addObject(this.sphere);
     }
 
     setupResponsive() {
@@ -139,13 +145,14 @@ waitForThree().then(async () => {
 
       if (this.cube) {
         this.cube.animate();
-        if (CONFIG.animation && CONFIG.animation.pulse) {
-          this.cube.pulse(elapsedTime);
-        }
       }
 
       if (this.sphere) {
         this.sphere.animate();
+      }
+
+      if (this.collisionManager) {
+        this.collisionManager.checkCollisions();
       }
 
       if (this.lights && CONFIG.animation && CONFIG.animation.lightRotation) {
@@ -207,6 +214,7 @@ waitForThree().then(async () => {
       if (this.scene) this.scene.dispose();
       if (this.renderer) this.renderer.dispose();
       if (this.camera) this.camera.dispose();
+      if (this.collisionManager) this.collisionManager.dispose();
 
       this.responsiveManager.destroy();
 
@@ -216,6 +224,7 @@ waitForThree().then(async () => {
       this.cube = null;
       this.sphere = null;
       this.lights = null;
+      this.collisionManager = null;
     }
   }
 
